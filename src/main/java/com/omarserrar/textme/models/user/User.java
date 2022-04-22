@@ -1,8 +1,14 @@
-package com.omarserrar.textme.user;
+package com.omarserrar.textme.models.user;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.omarserrar.textme.models.messenger.Conversation;
 import lombok.*;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -27,18 +33,36 @@ public class User implements UserDetails {
             strategy = GenerationType.SEQUENCE,
             generator = "user_id_sequence"
     )
+
     private long id;
+
     private String firstName;
+
     private String lastName;
+
     private String username;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
+
     private Date birthDate;
+
     private String email;
+
     private String phoneNumber;
 
     @ManyToMany()
     @Fetch(FetchMode.JOIN)
     private Set<User> contacts;
+
+    @OneToMany()
+    @Fetch(FetchMode.JOIN)
+    private Set<UserSessions> sessions;
+
+    @JsonIgnore
+    @OneToOne
+    @Fetch(FetchMode.SELECT)
+    private Image userPicture;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

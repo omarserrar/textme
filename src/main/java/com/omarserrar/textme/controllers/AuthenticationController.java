@@ -1,16 +1,13 @@
 package com.omarserrar.textme.controllers;
 
 import com.omarserrar.textme.services.AuthenticationService;
-import com.omarserrar.textme.services.UserService;
-import com.omarserrar.textme.user.User;
-import com.omarserrar.textme.user.requests.LoginRequest;
+import com.omarserrar.textme.services.responses.LoginResponse;
+import com.omarserrar.textme.models.user.User;
+import com.omarserrar.textme.models.user.requests.LoginRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @AllArgsConstructor
 @RestController
@@ -25,7 +22,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(authenticationService.createUser(user));
     }
     @PostMapping("login")
-    private ResponseEntity<String> login(@RequestBody LoginRequest loginRequest){
+    private ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest){
         return ResponseEntity.ok(authenticationService.login(loginRequest));
     }
 
