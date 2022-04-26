@@ -30,22 +30,24 @@ public class JWTFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authorization = request.getHeader("Authorization");
         String token = null;
-        String userName = null;
+        Long uid = null;
+        String type = null;
         if(null != authorization && authorization.startsWith("Bearer ")) {
             System.out.printf("here bearer ");
             token = authorization.substring(7);
             System.out.printf(token);
-            userName = JWTUtils.getUserNameFromJWT(token);
+            uid = JWTUtils.getUserId(token);
+            type = JWTUtils.getTokenType(token);
         }
-        if(userName != null && JWTUtils.isExpired(token)){
-            User userDetails = userRepository.findUserByUsername(userName).orElseThrow();
+        if(type != null && type.equals("AUTH") && uid != null && JWTUtils.isExpired(token)){
+            User userDetails = userRepository.findById(uid).orElseThrow();
             UserSessions us = new UserSessions(token);
             userDetails.getSessions().remove(us);
             userRepository.save(userDetails);
         }
-        else if(userName != null && SecurityContextHolder.getContext().getAuthentication()==null){
+        else if(type != null && type.equals("AUTH") && uid != null && SecurityContextHolder.getContext().getAuthentication()==null){
             System.out.printf("User Found");
-            User userDetails = userRepository.findUserByUsername(userName).orElseThrow();
+            User userDetails = userRepository.findById(uid).orElseThrow();
             UserSessions us = new UserSessions(token);
             if(!userDetails.getSessions().contains(us)){
                 sessionRepository.save(us);
@@ -54,6 +56,7 @@ public class JWTFilter extends OncePerRequestFilter {
             }
             Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            System.out.printf("Auth");
         }
         else{
             System.out.printf("user not found");

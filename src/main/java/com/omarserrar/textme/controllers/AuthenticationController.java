@@ -1,7 +1,7 @@
 package com.omarserrar.textme.controllers;
 
 import com.omarserrar.textme.services.AuthenticationService;
-import com.omarserrar.textme.services.responses.LoginResponse;
+import com.omarserrar.textme.models.responses.LoginResponse;
 import com.omarserrar.textme.models.user.User;
 import com.omarserrar.textme.models.user.requests.LoginRequest;
 import lombok.AllArgsConstructor;

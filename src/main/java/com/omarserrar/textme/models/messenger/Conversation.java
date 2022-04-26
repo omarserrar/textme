@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -35,8 +36,18 @@ public class Conversation {
     @OneToOne
     User user2;
 
-    @OneToMany()
-    @Fetch(FetchMode.JOIN)
+    @OneToMany(fetch = FetchType.LAZY)
     @OrderBy("sentDate ASC")
     private Set<Message> messages;
+
+
+    public Message addMessage(Message m){
+        if(messages.add(m))
+            return m;
+        return null;
+    }
+    public User getDest(User user){
+        if(user.getId() == user1.getId()) return user2;
+        return user1;
+    }
 }

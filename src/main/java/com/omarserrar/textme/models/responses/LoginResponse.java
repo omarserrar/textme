@@ -1,4 +1,4 @@
-package com.omarserrar.textme.services.responses;
+package com.omarserrar.textme.models.responses;
 
 import lombok.Builder;
 import lombok.Data;

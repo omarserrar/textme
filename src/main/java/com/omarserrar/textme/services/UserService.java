@@ -1,5 +1,6 @@
 package com.omarserrar.textme.services;
 
+import com.omarserrar.textme.models.requests.UserEditRequest;
 import com.omarserrar.textme.models.user.Image;
 import com.omarserrar.textme.models.user.ImageRepository;
 import com.omarserrar.textme.models.user.User;
@@ -69,14 +70,29 @@ public class UserService {
         userRepository.save(connectedUser);
         return true;
     }
+    public User editUser(UserEditRequest userEditRequest){
+        User connectedUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        assert connectedUser!=null;
+
+        if(userEditRequest.getUsername() != null)
+            connectedUser.setUsername(userEditRequest.getUsername());
+        if(userEditRequest.getFirstName() != null)
+            connectedUser.setFirstName(userEditRequest.getFirstName());
+        if(userEditRequest.getLastName() != null)
+            connectedUser.setLastName(userEditRequest.getLastName());
+        if(userEditRequest.getPhoneNumber() != null)
+            connectedUser.setPhoneNumber(userEditRequest.getPhoneNumber());
+        if(userEditRequest.getEmail() != null)
+            connectedUser.setEmail(userEditRequest.getEmail());
+
+        return userRepository.save(connectedUser);
+    }
     public Image getUserPicture() throws UserNotFoundException {
         User connectedUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         assert connectedUser!=null;
         return connectedUser.getUserPicture();
     }
     public Image getPicture(Long id) throws UserNotFoundException {
-        User connectedUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        assert connectedUser!=null;
         User user = userRepository.findById(id).orElseThrow(()-> new UserNotFoundException());
         return user.getUserPicture();
     }

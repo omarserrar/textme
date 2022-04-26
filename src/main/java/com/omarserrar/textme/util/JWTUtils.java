@@ -10,21 +10,25 @@ import java.util.Date;
 public class JWTUtils {
     public static String getUserJWT(User user){
         return JWT.create()
-                .withClaim("username",user.getUsername())
+                .withClaim("uid",user.getId())
+                .withClaim("type","AUTH")
                 .withIssuedAt(new Date(System.currentTimeMillis()))
                 .withExpiresAt(new Date(System.currentTimeMillis()+1000*60*60*24*100))
                 .sign(Algorithm.HMAC256("secret"));
     }
 
-    public static String getUserNameFromJWT(String jwt) {
+    public static Long getUserId(String jwt) {
         DecodedJWT jwtDecoded = JWT.decode(jwt);
-        return jwtDecoded.getClaim("username").asString();
+        return jwtDecoded.getClaim("uid").asLong();
     }
-
+    public static String getTokenType(String jwt){
+        DecodedJWT jwtDecoded = JWT.decode(jwt);
+        return jwtDecoded.getClaim("type").asString();
+    }
     public static boolean validateTempToken(User u, String jwt) throws ExpiredJWTException {
         DecodedJWT jwtDecoded = JWT.decode(jwt);
         if(isExpired(jwtDecoded)) throw new ExpiredJWTException();
-        return u.getId() == Long.parseLong(jwtDecoded.getClaim("id").asString());
+        return u.getId() == jwtDecoded.getClaim("uid").asLong();
     }
     public static boolean isExpired(String jwt){
         return isExpired(JWT.decode(jwt));

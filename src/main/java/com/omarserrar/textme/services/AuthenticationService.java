@@ -2,7 +2,7 @@ package com.omarserrar.textme.services;
 
 import com.omarserrar.textme.models.user.SessionRepository;
 import com.omarserrar.textme.models.user.UserSessions;
-import com.omarserrar.textme.services.responses.LoginResponse;
+import com.omarserrar.textme.models.responses.LoginResponse;
 import com.omarserrar.textme.models.user.User;
 import com.omarserrar.textme.models.user.UserRepository;
 import com.omarserrar.textme.models.user.requests.LoginRequest;
@@ -54,7 +54,7 @@ public class AuthenticationService {
                     new UsernamePasswordAuthenticationToken(user, null)
             );
             String jwt = JWTUtils.getUserJWT(user);
-            UserSessions session = sessionRepository.save(UserSessions.builder().jwt(jwt).build());
+            UserSessions session = UserSessions.builder().jwt(jwt).build();
             sessionRepository.save(session);
             user.getSessions().add(session);
             userRepository.save(user);

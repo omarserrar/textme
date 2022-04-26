@@ -5,27 +5,28 @@ import com.omarserrar.textme.models.messenger.Message;
 import com.omarserrar.textme.models.messenger.MessageRepository;
 import com.omarserrar.textme.models.messenger.MessengerRepository;
 import com.omarserrar.textme.models.messenger.exceptions.ConversationNotFound;
+import com.omarserrar.textme.models.user.Image;
+import com.omarserrar.textme.models.user.ImageRepository;
 import com.omarserrar.textme.models.user.User;
 import com.omarserrar.textme.models.user.UserRepository;
 import com.omarserrar.textme.models.user.exceptions.ActionNotPermitted;
 import com.omarserrar.textme.models.user.exceptions.NotAuth;
 import com.omarserrar.textme.models.user.exceptions.UserNotFoundException;
-import com.omarserrar.textme.services.requests.MessageRequest;
+import com.omarserrar.textme.models.requests.MessageRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.ConverterNotFoundException;
-import org.springframework.http.HttpStatus;
-import org.springframework.messaging.simp.SimpMessageSendingOperations;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import javax.persistence.EntityNotFoundException;
+import java.io.IOException;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 @Service
 public class MessengerService {
@@ -37,6 +38,27 @@ public class MessengerService {
     MessageRepository messageRepository;
     @Autowired
     NotificationService notificationService;
+    @Autowired
+    ImageRepository imageRepository;
+
+    public void seenMessage(Long id) throws ConversationNotFound {
+        Conversation conversation = messengerRepository.findById(id).orElseThrow(()->new ConversationNotFound());
+        User connectedUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        assert connectedUser != null;
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+
+        List<Message> seenMessage = conversation.getMessages().stream().filter((c)-> c.getSeen()==null && c.getSender().getId()!=connectedUser.getId()).map((c)->{
+            c.setSeen(now);
+            return c;
+        }).collect(Collectors.toList());
+        if(seenMessage.size()>0){
+            Message lastSeenMessage = seenMessage.get(seenMessage.size()-1);
+            User dest = conversation.getDest(connectedUser);
+            notificationService.seen(dest, conversation, lastSeenMessage);
+        }
+
+        messengerRepository.save(conversation);
+    }
     public Optional<List<Conversation>> getUserConversation(){
         try{
             User connectedUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -75,7 +97,7 @@ public class MessengerService {
             Conversation c;
             c = this.messengerRepository.getConversationFromUsers(user.getId(), connectedUser.getId());
             if(c==null){
-                c = Conversation.builder().user2(user).user1(connectedUser).build();
+                c = Conversation.builder().user2(user).user1(connectedUser).messages(Set.of()).build();
                 c = messengerRepository.save(c);
             }
             return Optional.of(c);
@@ -84,20 +106,32 @@ public class MessengerService {
             return Optional.empty();
         }
     }
-
-    public Conversation sendMessage(MessageRequest msg, Long conversationId) throws NotAuth, ActionNotPermitted, ConversationNotFound {
+    public Message sendFile(MultipartFile file, Long conversationId) throws NotAuth, ActionNotPermitted, ConversationNotFound, IOException {
+        Conversation conversation = messengerRepository.findById(conversationId).orElseThrow(() -> new ConversationNotFound());
+        User connectedUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if(connectedUser == null) throw new NotAuth();
+        Image image = Image.builder().fileName(file.getOriginalFilename()).type(file.getContentType()).data(file.getBytes()).build();
+        imageRepository.save(image);
+        Message m = Message.builder().sender(connectedUser).textContent(null).sentDate(new Timestamp(new Date().getTime())).image(image).build();
+        sendMessage(conversation, connectedUser, m);
+        return m;
+    }
+    public Message sendMessage(MessageRequest msg, Long conversationId) throws NotAuth, ActionNotPermitted, ConversationNotFound {
         Conversation conversation = messengerRepository.findById(conversationId).orElseThrow(() -> new ConversationNotFound());
         User connectedUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if(connectedUser == null) throw new NotAuth();
         Message m = Message.builder().sender(connectedUser).textContent(msg.getMessage()).sentDate(new Timestamp(new Date().getTime())).build();
-        return sendMessage(conversation, connectedUser, m);
+        sendMessage(conversation, connectedUser, m);
+        return m;
     }
+    @Transactional
     public Conversation sendMessage(Conversation c, User u, Message m) throws ActionNotPermitted {
         if(c.getUser1().getId() == u.getId() || c.getUser2().getId() == u.getId() ){
             messageRepository.save(m);
-            c.getMessages().add(m);
-            messengerRepository.save(c);
+            messengerRepository.insertMessage(m.getId(),c.getId());
+
             User dest = (c.getUser1().getId() == u.getId())?c.getUser2():c.getUser1();
+
             notificationService.sendMessageNotification(dest,m);
             return c;
         }

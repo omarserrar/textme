@@ -1,31 +1,20 @@
 package com.omarserrar.textme.controllers;
 
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import com.omarserrar.textme.models.user.Image;
+import com.omarserrar.textme.models.requests.UserEditRequest;
 import com.omarserrar.textme.models.user.UserFilters;
-import com.omarserrar.textme.models.user.exceptions.BadFileTypeException;
 import com.omarserrar.textme.services.AuthenticationService;
 import com.omarserrar.textme.services.UserService;
-import com.omarserrar.textme.services.responses.ErrorResponse;
+import com.omarserrar.textme.models.responses.ErrorResponse;
 import com.omarserrar.textme.models.user.User;
 import com.omarserrar.textme.models.user.exceptions.UserNotFoundException;
-import jdk.jfr.ContentType;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
-import java.net.URI;
 import java.util.List;
-import java.util.ResourceBundle;
 
 @AllArgsConstructor
 @RestController
@@ -38,6 +27,11 @@ public class UserController {
     @GetMapping()
     private ResponseEntity<List<User>> getAllUsers(){
         return ResponseEntity.ok(userService.getUserList());
+    }
+    @PutMapping("")
+    private ResponseEntity editProfile(@RequestBody() UserEditRequest userEditRequest){
+        System.out.println(userEditRequest);
+        return ResponseEntity.ok(userService.editUser(userEditRequest));
     }
     @GetMapping("me")
     private ResponseEntity whoiam(){

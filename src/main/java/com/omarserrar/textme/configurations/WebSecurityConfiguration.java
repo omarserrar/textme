@@ -32,12 +32,14 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .cors().configurationSource(request -> {
                     CorsConfiguration c = new CorsConfiguration().applyPermitDefaultValues();
                     c.addAllowedMethod(HttpMethod.DELETE);
+                    c.addAllowedMethod(HttpMethod.PUT);
                     return c;
                 }).and()
                 .csrf().disable()
                 .authorizeRequests().antMatchers("/api/auth/login", "/api/auth/register").not().authenticated()
-                .antMatchers("/stomp").permitAll()
-                .anyRequest().authenticated().and()
+                .antMatchers("/api/files/download/**").permitAll()
+                .antMatchers("/api/**").authenticated()
+                .anyRequest().permitAll().and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
                 http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
     }

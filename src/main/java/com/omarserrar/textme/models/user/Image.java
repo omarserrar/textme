@@ -1,5 +1,6 @@
 package com.omarserrar.textme.models.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,9 +31,10 @@ public class Image {
 
     private String type;
 
+    @JsonIgnore
     private String fileName;
 
     @Fetch(FetchMode.SELECT)
-    @Lob
+    @JsonIgnore
     private byte[] data;
 }

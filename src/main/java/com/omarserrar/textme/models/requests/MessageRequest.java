@@ -1,4 +1,4 @@
-package com.omarserrar.textme.services.requests;
+package com.omarserrar.textme.models.requests;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

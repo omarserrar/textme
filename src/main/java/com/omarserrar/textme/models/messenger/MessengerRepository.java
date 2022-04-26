@@ -2,6 +2,7 @@ package com.omarserrar.textme.models.messenger;
 
 import com.omarserrar.textme.models.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import javax.transaction.Transactional;
@@ -15,5 +16,8 @@ public interface MessengerRepository extends JpaRepository<Conversation, Long> {
     @Query(value ="SELECT * FROM conversation WHERE (user1_id=:user1 AND user2_id=:user2) OR (user1_id=:user2 AND user2_id=:user1) LIMIT 1", nativeQuery = true)
     public Conversation getConversationFromUsers(Long user1, Long user2);
 
+    @Modifying
+    @Query(value = "Insert INTO conversation_messages values(:c, :m)", nativeQuery = true)
+    public int insertMessage(Long m, Long c);
 
 }
