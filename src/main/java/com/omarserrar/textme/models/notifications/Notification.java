@@ -7,4 +7,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public abstract class Notification {
     protected String notificationType;
+
+
 }

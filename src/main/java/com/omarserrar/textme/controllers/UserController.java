@@ -2,6 +2,7 @@ package com.omarserrar.textme.controllers;
 
 import com.omarserrar.textme.models.requests.UserEditRequest;
 import com.omarserrar.textme.models.user.UserFilters;
+import com.omarserrar.textme.models.user.exceptions.UserEditException;
 import com.omarserrar.textme.services.AuthenticationService;
 import com.omarserrar.textme.services.UserService;
 import com.omarserrar.textme.models.responses.ErrorResponse;
@@ -31,7 +32,12 @@ public class UserController {
     @PutMapping("")
     private ResponseEntity editProfile(@RequestBody() UserEditRequest userEditRequest){
         System.out.println(userEditRequest);
-        return ResponseEntity.ok(userService.editUser(userEditRequest));
+        try{
+            return ResponseEntity.ok(userService.editUser(userEditRequest));
+        }
+        catch (UserEditException e){
+            return ResponseEntity.badRequest().body(new ErrorResponse(e));
+        }
     }
     @GetMapping("me")
     private ResponseEntity whoiam(){

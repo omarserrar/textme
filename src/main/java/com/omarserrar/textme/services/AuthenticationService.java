@@ -1,5 +1,6 @@
 package com.omarserrar.textme.services;
 
+import com.omarserrar.textme.models.responses.RegisterResponse;
 import com.omarserrar.textme.models.user.SessionRepository;
 import com.omarserrar.textme.models.user.UserSessions;
 import com.omarserrar.textme.models.responses.LoginResponse;
@@ -18,7 +19,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class AuthenticationService {
@@ -41,10 +45,17 @@ public class AuthenticationService {
             return Optional.empty();
         }
     }
-    public User createUser(User user){
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        System.out.println(user);
-        return userService.addUser(user);
+    public RegisterResponse createUser(User user) throws Exception {
+
+        if(user.getPassword()!=null){
+            if(user.getPassword().trim().length()<3 || user.getPassword().trim().length()>20)
+                throw new Exception("Invalid password");
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
+        User u = userService.addUser(user);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(u, null, u.getAuthorities());
+        String jwt = JWTUtils.getUserJWT(u);
+        return RegisterResponse.builder().u(u).jwt(jwt).build();
     }
     public LoginResponse login(LoginRequest loginRequest){
         try{

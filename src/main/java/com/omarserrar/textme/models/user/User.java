@@ -13,8 +13,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 @Entity()
@@ -64,6 +66,13 @@ public class User implements UserDetails {
     @Fetch(FetchMode.SELECT)
     private Image userPicture;
 
+    private Boolean online = false;
+    private Timestamp lastOnline;
+
+    private Timestamp creationDate;
+
+
+    private Boolean guest = false;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return null;
@@ -88,5 +97,14 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public void setOnline(){
+        online = true;
+        lastOnline = new Timestamp(System.currentTimeMillis());
+    }
+    public void setOffline(){
+        online = false;
+        lastOnline = new Timestamp(System.currentTimeMillis());
     }
 }

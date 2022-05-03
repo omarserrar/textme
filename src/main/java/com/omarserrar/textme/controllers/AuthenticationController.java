@@ -1,5 +1,6 @@
 package com.omarserrar.textme.controllers;
 
+import com.omarserrar.textme.models.responses.ErrorResponse;
 import com.omarserrar.textme.services.AuthenticationService;
 import com.omarserrar.textme.models.responses.LoginResponse;
 import com.omarserrar.textme.models.user.User;
@@ -17,9 +18,14 @@ public class AuthenticationController {
     public AuthenticationService authenticationService;
 
     @PostMapping("register")
-    private ResponseEntity<User> createUser(@RequestBody User user){
+    private ResponseEntity createUser(@RequestBody User user){
         System.out.println("here");
-        return ResponseEntity.ok(authenticationService.createUser(user));
+        try {
+            return ResponseEntity.ok(authenticationService.createUser(user));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(new ErrorResponse(e));
+        }
     }
     @PostMapping("login")
     private ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest){

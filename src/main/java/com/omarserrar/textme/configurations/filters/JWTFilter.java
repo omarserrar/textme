@@ -33,9 +33,9 @@ public class JWTFilter extends OncePerRequestFilter {
         Long uid = null;
         String type = null;
         if(null != authorization && authorization.startsWith("Bearer ")) {
-            System.out.printf("here bearer ");
+            ////System.out.printf("here bearer ");
             token = authorization.substring(7);
-            System.out.printf(token);
+            //System.out.printf(token);
             uid = JWTUtils.getUserId(token);
             type = JWTUtils.getTokenType(token);
         }
@@ -46,20 +46,20 @@ public class JWTFilter extends OncePerRequestFilter {
             userRepository.save(userDetails);
         }
         else if(type != null && type.equals("AUTH") && uid != null && SecurityContextHolder.getContext().getAuthentication()==null){
-            System.out.printf("User Found");
+            //System.out.printf("User Found");
             User userDetails = userRepository.findById(uid).orElseThrow();
             UserSessions us = new UserSessions(token);
             if(!userDetails.getSessions().contains(us)){
-                sessionRepository.save(us);
+               /* sessionRepository.save(us);
                 userDetails.getSessions().add(us);
-                userRepository.save(userDetails);
+                userRepository.save(userDetails);*/
             }
             Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            System.out.printf("Auth");
+            //System.out.printf("Auth");
         }
         else{
-            System.out.printf("user not found");
+            //System.out.printf("user not found");
         }
         filterChain.doFilter(request, response);
     }
